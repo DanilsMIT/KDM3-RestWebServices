@@ -174,3 +174,7 @@ SELECT * FROM HistorialStock;
 SELECT * FROM CabeceraVentas;
 SELECT * FROM DetallesVentas;
 
+Select prodc.codeproducto, prodc.nombre as nombre_producto, prodc.code_udm, udm.descripcion as nombre_UDM,
+cast(prodc.precio_venta as decimal(5,2)),prodc.iva,cast(prodc.costo as decimal(5,2)),prodc.code_cat,catg.nombre as nombre_categoria, prodc.stock
+FROM Productos prodc, UnidadesMedida UDM, Categorias catg
+Where prodc.code_udm = UDM.codeudm and prodc.code_cat = catg.codecat and upper(prodc.nombre) like ;

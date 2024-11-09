@@ -15,7 +15,7 @@ import com.krakedev.inventarios.BDD.ProveedoresBDD;
 import com.krakedev.inventarios.entidades.Proveedor;
 import com.krakedev.inventarios.exception.krakedevException;
 
-@Path("Proveedores")
+@Path("proveedores")
 public class ServicioProveedores {
 	@Path("insertar")
 	@POST
