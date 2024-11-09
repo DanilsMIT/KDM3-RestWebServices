@@ -9,11 +9,44 @@ import java.util.ArrayList;
 
 import com.krakedev.inventarios.entidades.Categoria;
 import com.krakedev.inventarios.entidades.Producto;
+import com.krakedev.inventarios.entidades.Proveedor;
 import com.krakedev.inventarios.entidades.UDM;
 import com.krakedev.inventarios.exception.krakedevException;
 import com.krakedev.inventarios.utils.ConexionBDD;
 
 public class ProductosBDD {
+	
+	public void InsertarProducto(Producto pv) throws krakedevException{
+		Connection con=null;
+		PreparedStatement ps=null;
+		try {
+			con=ConexionBDD.obtenerConexion();
+			ps=con.prepareStatement("INSERT INTO Productos (nombre, Code_UDM, Precio_Venta, IVA, costo, Code_Cat, stock) "
+					+ " values(?,?,?,?,?,?,?) ");
+			ps.setString(1, pv.getNombre());
+			ps.setString(2, pv.getCode_UDM().getUDM());
+			ps.setBigDecimal(3,pv.getPrecio_venta());
+			ps.setBoolean(4, pv.isIVA());
+			ps.setBigDecimal(5,pv.getCosto());
+			ps.setInt(6, pv.getCode_Cat().getCodeCat());
+			ps.setInt(7, pv.getStock());
+			ps.executeUpdate();
+		} catch (krakedevException e) {
+			e.printStackTrace();
+			throw e;
+		} catch (SQLException e) {
+			e.printStackTrace();
+			throw new krakedevException("Error al Insertar Producto "+e.getMessage());
+		}finally {
+			if (con != null) {
+				try {
+					con.close();
+				} catch (SQLException e) {
+					e.printStackTrace();
+				}
+			}
+		}
+	}
 	public ArrayList<Producto> BuscarProducto(String subcadena) throws krakedevException {
 		ArrayList<Producto> pvL = new ArrayList<Producto>();
 		Producto pv = null;
@@ -53,7 +86,7 @@ public class ProductosBDD {
 			throw e;
 		} catch (SQLException e) {
 			e.printStackTrace();
-			throw new krakedevException("Error al consultar: " + e.getMessage());
+			throw new krakedevException("Error al consultar Producto: " + e.getMessage());
 		} finally {
 			if (CON != null) {
 				try {

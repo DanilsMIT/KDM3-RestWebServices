@@ -32,7 +32,7 @@ public class TipoIdentificacionBDD {
 			throw e;
 		} catch (SQLException e) {
 			e.printStackTrace();
-			throw new krakedevException("Error al consultar: " + e.getMessage());
+			throw new krakedevException("Error al consultar identificacion: " + e.getMessage());
 		} finally {
 			if (CON != null) {
 				try {
@@ -67,7 +67,7 @@ public class TipoIdentificacionBDD {
 			throw e;
 		} catch (SQLException e) {
 			e.printStackTrace();
-			throw new krakedevException("Error al consultar: " + e.getMessage());
+			throw new krakedevException("Error al consultar tipos de identificacion: " + e.getMessage());
 		} finally {
 			if (CON != null) {
 				try {

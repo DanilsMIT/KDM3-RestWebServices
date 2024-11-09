@@ -31,7 +31,7 @@ public class ProveedoresBDD {
 			throw e;
 		} catch (SQLException e) {
 			e.printStackTrace();
-			throw new krakedevException("Error al Insertar Categoria "+e.getMessage());
+			throw new krakedevException("Error al Insertar proveedor"+e.getMessage());
 		}finally {
 			if (con != null) {
 				try {
@@ -70,7 +70,7 @@ public class ProveedoresBDD {
 			throw e;
 		} catch (SQLException e) {
 			e.printStackTrace();
-			throw new krakedevException("Error al consultar: " + e.getMessage());
+			throw new krakedevException("Error al consultar proveedores: " + e.getMessage());
 		} finally {
 			if (CON != null) {
 				try {
