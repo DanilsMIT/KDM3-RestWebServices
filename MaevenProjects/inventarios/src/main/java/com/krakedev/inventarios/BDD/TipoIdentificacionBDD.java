@@ -12,6 +12,40 @@ import com.krakedev.inventarios.utils.ConexionBDD;
 
 public class TipoIdentificacionBDD {
 	
+	public TipoIdentificacion recuperarTipo(String ID) throws krakedevException {
+		Connection CON = null;
+		PreparedStatement PS = null;
+		TipoIdentificacion pv = null;
+		try {
+			CON = ConexionBDD.obtenerConexion();
+			PS = CON.prepareStatement("Select * from TipoIdentificacion where CodeI = ? ");
+			PS.setString(1, ID);
+			ResultSet RS = PS.executeQuery();
+			if(RS.next()) {
+				String CodeI=RS.getString("CodeI");
+				String descripcion=RS.getString("descripcion");
+				pv=new TipoIdentificacion(CodeI,descripcion);
+			}
+
+		} catch (krakedevException e) {
+			e.printStackTrace();
+			throw e;
+		} catch (SQLException e) {
+			e.printStackTrace();
+			throw new krakedevException("Error al consultar: " + e.getMessage());
+		} finally {
+			if (CON != null) {
+				try {
+					CON.close();
+				} catch (SQLException e) {
+					e.printStackTrace();
+				}
+			}
+		}
+
+		return pv;
+	}
+	
 	public ArrayList<TipoIdentificacion> recuperarTipos() throws krakedevException {
 		ArrayList<TipoIdentificacion> pvL = new ArrayList<TipoIdentificacion>();
 		Connection CON = null;
@@ -24,7 +58,7 @@ public class TipoIdentificacionBDD {
 			while (RS.next()) {
 				String CodeI = RS.getString("CodeI");
 				String descripcion = RS.getString("descripcion");
-				pv = new TipoIdentificacion(CodeI,descripcion);
+				pv = new TipoIdentificacion(CodeI, descripcion);
 				pvL.add(pv);
 			}
 
@@ -45,4 +79,5 @@ public class TipoIdentificacionBDD {
 		}
 
 		return pvL;
-	}}
+	}
+}
