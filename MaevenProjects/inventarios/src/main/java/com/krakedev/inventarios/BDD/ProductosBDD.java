@@ -47,6 +47,42 @@ public class ProductosBDD {
 			}
 		}
 	}
+	public Producto BuscarProducto(int ID) throws krakedevException {
+		Producto pv = null;
+		Connection CON = null;
+		PreparedStatement PS = null;
+		try {
+			CON = ConexionBDD.obtenerConexion();
+			PS = CON.prepareStatement(
+					"Select * from Productos where codeproducto = ?");
+			PS.setInt(1, ID);
+			ResultSet RS = PS.executeQuery();
+			if (RS.next()) {
+				pv=new Producto();
+				int codepv= RS.getInt("codeproducto");
+				int pvStock=RS.getInt("stock");
+				pv.setCodeProducto(codepv);
+				pv.setStock(pvStock);
+			}
+
+		} catch (krakedevException e) {
+			e.printStackTrace();
+			throw e;
+		} catch (SQLException e) {
+			e.printStackTrace();
+			throw new krakedevException("Error al consultar Producto: " + e.getMessage());
+		} finally {
+			if (CON != null) {
+				try {
+					CON.close();
+				} catch (SQLException e) {
+					e.printStackTrace();
+				}
+			}
+		}
+
+		return pv;
+	}
 	public ArrayList<Producto> BuscarProducto(String subcadena) throws krakedevException {
 		ArrayList<Producto> pvL = new ArrayList<Producto>();
 		Producto pv = null;

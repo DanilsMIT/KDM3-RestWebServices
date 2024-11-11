@@ -15,6 +15,13 @@ public class Pedido {
 		super();
 	}
 	
+	
+	public Pedido(int codigo) {
+		super();
+		this.codigo = codigo;
+	}
+
+
 	public Pedido(Proveedor proveedor, Date fechaPedido, EstadoPedido estado, ArrayList<DetallePedido> detalles) {
 		super();
 		this.proveedor = proveedor;
