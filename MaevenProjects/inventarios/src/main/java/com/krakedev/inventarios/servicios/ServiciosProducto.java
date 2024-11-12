@@ -5,6 +5,7 @@ import java.util.ArrayList;
 import javax.ws.rs.Consumes;
 import javax.ws.rs.GET;
 import javax.ws.rs.POST;
+import javax.ws.rs.PUT;
 import javax.ws.rs.Path;
 import javax.ws.rs.PathParam;
 import javax.ws.rs.Produces;
@@ -17,6 +18,20 @@ import com.krakedev.inventarios.exception.krakedevException;
 
 @Path("productos")
 public class ServiciosProducto {
+	@Path("actualizar")
+	@PUT
+	@Consumes(MediaType.APPLICATION_JSON)
+	public Response Actualizar(Producto pv){
+		ProductosBDD pvBDD= new ProductosBDD();
+		try {
+			pvBDD.ActualizarProducto(pv);
+			return Response.ok().build();
+		} catch (krakedevException e) {
+			e.printStackTrace();
+			return Response.serverError().build();
+		}
+		
+	}
 	
 	@Path("insertar")
 	@POST
@@ -33,6 +48,20 @@ public class ServiciosProducto {
 		}
 		
 	}
+	@Path("buscarUno/{ID}")
+	@GET
+	@Produces(MediaType.APPLICATION_JSON)
+	public Response Buscar(@PathParam("ID") int buscador) {
+		Producto pvL;
+		ProductosBDD pvBDD = new ProductosBDD();
+		try {
+			pvL = pvBDD.BuscarProducto(buscador);
+			return Response.ok(pvL).build();
+		} catch (krakedevException e) {
+			e.printStackTrace();
+			return Response.serverError().build();
+		}
+	}
 	
 	@Path("buscar/{subcadena}")
 	@GET
@@ -41,7 +70,7 @@ public class ServiciosProducto {
 		ArrayList<Producto> pvL = new ArrayList<Producto>();
 		ProductosBDD pvBDD = new ProductosBDD();
 		try {
-			pvL = pvBDD.BuscarProducto(buscador);
+			pvL = pvBDD.BuscarProductos(buscador);
 			return Response.ok(pvL).build();
 		} catch (krakedevException e) {
 			e.printStackTrace();

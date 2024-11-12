@@ -173,3 +173,4 @@ SELECT * FROM DetallesPedidos;
 SELECT * FROM HistorialStock;
 SELECT * FROM CabeceraVentas;
 SELECT * FROM DetallesVentas;
+

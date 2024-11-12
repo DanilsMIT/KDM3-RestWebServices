@@ -10,6 +10,8 @@ import java.sql.Timestamp;
 import java.util.ArrayList;
 import java.util.Date;
 
+import com.krakedev.inventarios.entidades.CabeceraPedido;
+import com.krakedev.inventarios.entidades.DetalleCabeceraPedido;
 import com.krakedev.inventarios.entidades.DetallePedido;
 import com.krakedev.inventarios.entidades.Pedido;
 import com.krakedev.inventarios.entidades.Producto;
@@ -17,6 +19,96 @@ import com.krakedev.inventarios.exception.krakedevException;
 import com.krakedev.inventarios.utils.ConexionBDD;
 
 public class PedidoBDD {
+
+	public ArrayList<CabeceraPedido> recuperarPedidoProveedor(String identificador) throws krakedevException {
+		Connection CON = null;
+		PreparedStatement PS = null;
+		ArrayList<CabeceraPedido> pvL = new ArrayList<CabeceraPedido>();
+		ArrayList<DetalleCabeceraPedido> pvD = null;
+		CabeceraPedido pv = null;
+		try {
+			CON = ConexionBDD.obtenerConexion();
+			PS = CON.prepareStatement("Select * from CabeceraPedidos where codeproveedor = ? ");
+			PS.setString(1, identificador);
+			ResultSet RS = PS.executeQuery();
+			while (RS.next()) {
+				int codecabp = RS.getInt("codecabp");
+				String codeproveedor = RS.getString("codeproveedor");
+				Date fecha = RS.getDate("fecha");
+				String estado = RS.getString("estado");
+				pvD = recuperarDetallesCabPedido(codecabp);
+
+				pv = new CabeceraPedido(codecabp, codeproveedor, fecha, estado, pvD);
+
+				pvL.add(pv);
+
+			}
+
+		} catch (krakedevException e) {
+			e.printStackTrace();
+			throw e;
+		} catch (SQLException e) {
+			e.printStackTrace();
+			throw new krakedevException("No existe el Pedido: " + e.getMessage());
+		} finally {
+			if (CON != null) {
+				try {
+					CON.close();
+				} catch (SQLException e) {
+					e.printStackTrace();
+				}
+			}
+		}
+
+		return pvL;
+	}
+
+	public ArrayList<DetalleCabeceraPedido> recuperarDetallesCabPedido(int ID) throws krakedevException {
+		Connection CON = null;
+		PreparedStatement PS = null;
+		ArrayList<DetalleCabeceraPedido> pvL = new ArrayList<DetalleCabeceraPedido>();
+		DetalleCabeceraPedido pv = null;
+		try {
+			CON = ConexionBDD.obtenerConexion();
+			PS = CON.prepareStatement("Select * from DetallesPedidos where code_cabp = ? ");
+			PS.setInt(1, ID);
+			ResultSet RS = PS.executeQuery();
+			while (RS.next()) {
+				ProductosBDD pbdd = new ProductosBDD();
+				Producto P;
+				int codedetpedido = RS.getInt("codedetpedido");
+				int code_cabp = RS.getInt("code_cabp");
+				int code_producto = RS.getInt("code_producto");
+
+				P = pbdd.BuscarProducto(code_producto);
+
+				int cantidad = RS.getInt("cantidad");
+				BigDecimal subtotal = RS.getBigDecimal("subtotal");
+				int cantidadrecibida = RS.getInt("cantidadrecibida");
+
+				pv = new DetalleCabeceraPedido(codedetpedido, code_cabp, P, cantidad, subtotal, cantidadrecibida);
+				pvL.add(pv);
+
+			}
+
+		} catch (krakedevException e) {
+			e.printStackTrace();
+			throw e;
+		} catch (SQLException e) {
+			e.printStackTrace();
+			throw new krakedevException("No existe el Pedido: " + e.getMessage());
+		} finally {
+			if (CON != null) {
+				try {
+					CON.close();
+				} catch (SQLException e) {
+					e.printStackTrace();
+				}
+			}
+		}
+
+		return pvL;
+	}
 
 	public void PedidoRecibido(Pedido pv) throws krakedevException {
 		Connection con = null;
@@ -36,8 +128,8 @@ public class PedidoBDD {
 				for (int i = 0; i < pv.getDetalles().size(); i++) {
 					pvD = pvL.get(i);
 					pvDC = recuperarDetallePedido(pvD.getCode());
-					
-					if (pvDC.getCodePedido().getCodigo()==pv.getCodigo()) {
+
+					if (pvDC.getCodePedido().getCodigo() == pv.getCodigo()) {
 						psD = con.prepareStatement("Update DetallesPedidos set cantidadrecibida = ?, subtotal = ? "
 								+ "where codedetpedido = ? and code_cabp = ? ");
 						BigDecimal precioProdc = pvD.getCodeProducto().getPrecio_venta();
@@ -50,29 +142,30 @@ public class PedidoBDD {
 						psD.setInt(4, pv.getCodigo());
 						psD.executeUpdate();
 						System.out.println("Detalle actualizado");
-						
-						Date D=new Date();
-						Timestamp TS=new Timestamp(D.getTime());
-						String idP=Integer.toString(pv.getCodigo());
-						
-						psDH=con.prepareStatement("INSERT INTO HistorialStock (fecha, referencia, Code_Producto, cantidad) "
-								+ "values(?,?,?,?)");
+
+						Date D = new Date();
+						Timestamp TS = new Timestamp(D.getTime());
+						String idP = Integer.toString(pv.getCodigo());
+
+						psDH = con.prepareStatement(
+								"INSERT INTO HistorialStock (fecha, referencia, Code_Producto, cantidad) "
+										+ "values(?,?,?,?)");
 						psDH.setTimestamp(1, TS);
-						psDH.setString(2, "Pedido "+idP);
+						psDH.setString(2, "Pedido " + idP);
 						psDH.setInt(3, pvD.getCodeProducto().getCodeProducto());
 						psDH.setInt(4, pvD.getCantidadEnviada());
 						psDH.executeUpdate();
 
-						ProductosBDD pbdd=new ProductosBDD();
-						Producto P=pbdd.BuscarProducto(pvD.getCodeProducto().getCodeProducto());
-						int stock=P.getStock()+pvD.getCantidadEnviada();
-						psDP=con.prepareStatement("Update Productos set stock = ? where CodeProducto = ? ");
+						ProductosBDD pbdd = new ProductosBDD();
+						Producto P = pbdd.BuscarProducto(pvD.getCodeProducto().getCodeProducto());
+						int stock = P.getStock() + pvD.getCantidadEnviada();
+						psDP = con.prepareStatement("Update Productos set stock = ? where CodeProducto = ? ");
 						psDP.setInt(1, stock);
 						psDP.setInt(2, P.getCodeProducto());
 						psDP.executeUpdate();
 						System.out.println("Stock Producto actualizado");
 
-					}else {
+					} else {
 						throw new krakedevException("Quiza un detalle no corresponde al codigo del pedido ");
 					}
 
@@ -152,7 +245,7 @@ public class PedidoBDD {
 				int codecabp = RS.getInt("code_cabp");
 				int codecabpD = RS.getInt("codedetpedido");
 
-				Pedido p=new Pedido();
+				Pedido p = new Pedido();
 				p.setCodigo(codecabp);
 				pv.setCode(codecabpD);
 				pv.setCodePedido(p);
@@ -214,7 +307,7 @@ public class PedidoBDD {
 					psD.setBigDecimal(4, subtotal);
 					psD.setInt(5, 0);
 					psD.executeUpdate();
-										
+
 				}
 			}
 

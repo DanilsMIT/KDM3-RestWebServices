@@ -15,19 +15,62 @@ import com.krakedev.inventarios.exception.krakedevException;
 import com.krakedev.inventarios.utils.ConexionBDD;
 
 public class ProductosBDD {
-	
-	public void InsertarProducto(Producto pv) throws krakedevException{
-		Connection con=null;
-		PreparedStatement ps=null;
+
+	public void ActualizarProducto(Producto pv) throws krakedevException {
+		Connection con = null;
+		PreparedStatement ps = null;
+		Producto p = BuscarProducto(pv.getCodeProducto());
+		if (p.getCodeProducto() != 0) {
+			try {
+				con = ConexionBDD.obtenerConexion();
+				ps = con.prepareStatement(
+						"Update Productos set nombre = ?, code_udm = ?, precio_venta = ?, iva = ?, costo = ?, code_cat = ?, stock = ? where codeproducto = ? ");
+				ps.setString(1, pv.getNombre());
+				ps.setString(2, pv.getCode_UDM().getUDM());
+				ps.setBigDecimal(3, pv.getPrecio_venta());
+				ps.setBoolean(4, pv.isIVA());
+				ps.setBigDecimal(5, pv.getCosto());
+				ps.setInt(6, pv.getCode_Cat().getCodeCat());
+				ps.setInt(7, pv.getStock());
+				ps.setInt(8, pv.getCodeProducto());
+				ps.executeUpdate();
+			} catch (krakedevException e) {
+				e.printStackTrace();
+				throw e;
+			} catch (SQLException e) {
+				e.printStackTrace();
+				throw new krakedevException("Error al Insertar Producto " + e.getMessage());
+			} finally {
+				if (con != null) {
+					try {
+						con.close();
+					} catch (SQLException e) {
+						e.printStackTrace();
+					}
+				}
+			}
+		} else{
+			throw new krakedevException("Codigo de Producto inexistente");
+
+		}
+
+		{
+		}
+	}
+
+	public void InsertarProducto(Producto pv) throws krakedevException {
+		Connection con = null;
+		PreparedStatement ps = null;
 		try {
-			con=ConexionBDD.obtenerConexion();
-			ps=con.prepareStatement("INSERT INTO Productos (nombre, Code_UDM, Precio_Venta, IVA, costo, Code_Cat, stock) "
-					+ " values(?,?,?,?,?,?,?) ");
+			con = ConexionBDD.obtenerConexion();
+			ps = con.prepareStatement(
+					"INSERT INTO Productos (nombre, Code_UDM, Precio_Venta, IVA, costo, Code_Cat, stock) "
+							+ " values(?,?,?,?,?,?,?) ");
 			ps.setString(1, pv.getNombre());
 			ps.setString(2, pv.getCode_UDM().getUDM());
-			ps.setBigDecimal(3,pv.getPrecio_venta());
+			ps.setBigDecimal(3, pv.getPrecio_venta());
 			ps.setBoolean(4, pv.isIVA());
-			ps.setBigDecimal(5,pv.getCosto());
+			ps.setBigDecimal(5, pv.getCosto());
 			ps.setInt(6, pv.getCode_Cat().getCodeCat());
 			ps.setInt(7, pv.getStock());
 			ps.executeUpdate();
@@ -36,8 +79,8 @@ public class ProductosBDD {
 			throw e;
 		} catch (SQLException e) {
 			e.printStackTrace();
-			throw new krakedevException("Error al Insertar Producto "+e.getMessage());
-		}finally {
+			throw new krakedevException("Error al Insertar Producto " + e.getMessage());
+		} finally {
 			if (con != null) {
 				try {
 					con.close();
@@ -47,22 +90,38 @@ public class ProductosBDD {
 			}
 		}
 	}
+
 	public Producto BuscarProducto(int ID) throws krakedevException {
 		Producto pv = null;
+		UDM ud = null;
+		Categoria cat = null;
 		Connection CON = null;
 		PreparedStatement PS = null;
 		try {
 			CON = ConexionBDD.obtenerConexion();
 			PS = CON.prepareStatement(
-					"Select * from Productos where codeproducto = ?");
+					"Select prodc.codeproducto, prodc.nombre as nombre_producto, prodc.code_udm, udm.descripcion as nombre_UDM, "
+							+ "cast(prodc.precio_venta as decimal(5,2)),prodc.iva,cast(prodc.costo as decimal(5,2)),prodc.code_cat,catg.nombre as nombre_categoria, prodc.stock "
+							+ "FROM Productos prodc, UnidadesMedida UDM, Categorias catg "
+							+ "Where prodc.code_udm = UDM.codeudm and prodc.code_cat = catg.codecat and prodc.codeproducto = ?");
 			PS.setInt(1, ID);
 			ResultSet RS = PS.executeQuery();
 			if (RS.next()) {
-				pv=new Producto();
-				int codepv= RS.getInt("codeproducto");
-				int pvStock=RS.getInt("stock");
-				pv.setCodeProducto(codepv);
-				pv.setStock(pvStock);
+				int CodeProdc = RS.getInt("codeproducto");
+				String NombreProdc = RS.getString("nombre_producto");
+				String CodeUDM = RS.getString("code_udm");
+				String NombreUDM = RS.getString("nombre_udm");
+				BigDecimal PrecioVenta = RS.getBigDecimal("precio_venta");
+				boolean TieneIva = RS.getBoolean("iva");
+				BigDecimal Costo = RS.getBigDecimal("costo");
+				;
+				int CodeCat = RS.getInt("code_cat");
+				String NombreCodeCat = RS.getString("nombre_categoria");
+				int stock = RS.getInt("stock");
+
+				ud = new UDM(CodeUDM, NombreUDM);
+				cat = new Categoria(CodeCat, NombreCodeCat);
+				pv = new Producto(CodeProdc, NombreProdc, ud, PrecioVenta, TieneIva, Costo, cat, stock);
 			}
 
 		} catch (krakedevException e) {
@@ -83,37 +142,39 @@ public class ProductosBDD {
 
 		return pv;
 	}
-	public ArrayList<Producto> BuscarProducto(String subcadena) throws krakedevException {
+
+	public ArrayList<Producto> BuscarProductos(String subcadena) throws krakedevException {
 		ArrayList<Producto> pvL = new ArrayList<Producto>();
 		Producto pv = null;
-		UDM ud=null;
-		Categoria cat=null;
+		UDM ud = null;
+		Categoria cat = null;
 		Connection CON = null;
 		PreparedStatement PS = null;
 		try {
 			CON = ConexionBDD.obtenerConexion();
 			PS = CON.prepareStatement(
 					"Select prodc.codeproducto, prodc.nombre as nombre_producto, prodc.code_udm, udm.descripcion as nombre_UDM, "
-					+ "cast(prodc.precio_venta as decimal(5,2)),prodc.iva,cast(prodc.costo as decimal(5,2)),prodc.code_cat,catg.nombre as nombre_categoria, prodc.stock "
-					+ "FROM Productos prodc, UnidadesMedida UDM, Categorias catg "
-					+ "Where prodc.code_udm = UDM.codeudm and prodc.code_cat = catg.codecat and upper(prodc.nombre) like ?");
+							+ "cast(prodc.precio_venta as decimal(5,2)),prodc.iva,cast(prodc.costo as decimal(5,2)),prodc.code_cat,catg.nombre as nombre_categoria, prodc.stock "
+							+ "FROM Productos prodc, UnidadesMedida UDM, Categorias catg "
+							+ "Where prodc.code_udm = UDM.codeudm and prodc.code_cat = catg.codecat and upper(prodc.nombre) like ?");
 			PS.setString(1, "%" + subcadena.toUpperCase() + "%");
 			ResultSet RS = PS.executeQuery();
 			while (RS.next()) {
-				int CodeProdc=RS.getInt("codeproducto");
-				String NombreProdc=RS.getString("nombre_producto");
-				String CodeUDM=RS.getString("code_udm");
-				String NombreUDM=RS.getString("nombre_udm");
-				BigDecimal PrecioVenta=RS.getBigDecimal("precio_venta");
-				boolean TieneIva=RS.getBoolean("iva");
-				BigDecimal Costo=RS.getBigDecimal("costo");;
-				int CodeCat=RS.getInt("code_cat");
-				String NombreCodeCat=RS.getString("nombre_categoria");
-				int stock=RS.getInt("stock");
-				
-				ud=new UDM(CodeUDM,NombreUDM);
-				cat= new Categoria(CodeCat,NombreCodeCat);
-				pv=new Producto(CodeProdc,NombreProdc,ud,PrecioVenta,TieneIva,Costo,cat,stock);
+				int CodeProdc = RS.getInt("codeproducto");
+				String NombreProdc = RS.getString("nombre_producto");
+				String CodeUDM = RS.getString("code_udm");
+				String NombreUDM = RS.getString("nombre_udm");
+				BigDecimal PrecioVenta = RS.getBigDecimal("precio_venta");
+				boolean TieneIva = RS.getBoolean("iva");
+				BigDecimal Costo = RS.getBigDecimal("costo");
+				;
+				int CodeCat = RS.getInt("code_cat");
+				String NombreCodeCat = RS.getString("nombre_categoria");
+				int stock = RS.getInt("stock");
+
+				ud = new UDM(CodeUDM, NombreUDM);
+				cat = new Categoria(CodeCat, NombreCodeCat);
+				pv = new Producto(CodeProdc, NombreProdc, ud, PrecioVenta, TieneIva, Costo, cat, stock);
 				pvL.add(pv);
 			}
 

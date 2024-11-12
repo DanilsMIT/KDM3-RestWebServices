@@ -43,6 +43,44 @@ public class ProveedoresBDD {
 		}
 	}
 	
+	public Proveedor BuscarProveedor(String subcadena) throws krakedevException {
+		Connection CON = null;
+		PreparedStatement PS = null;
+		Proveedor pv = null;
+		TipoIdentificacionBDD tIBDD=new TipoIdentificacionBDD();
+		try {
+			CON = ConexionBDD.obtenerConexion();
+			PS = CON.prepareStatement("SELECT * FROM Proveedores where identificador = ?");
+			PS.setString(1, subcadena);
+			ResultSet RS = PS.executeQuery();
+			if (RS.next()) {
+				String Identificador = RS.getString("Identificador");
+				TipoIdentificacion TipoDocumento = tIBDD.recuperarTipo(RS.getString("TipoDocumento"));
+				String nombre = RS.getString("nombre");
+				String telefono = RS.getString("telefono");
+				String correo = RS.getString("correo");
+				String direccion = RS.getString("direccion");
+				pv = new Proveedor(Identificador, TipoDocumento, nombre, telefono, correo, direccion);
+			}
+
+		} catch (krakedevException e) {
+			e.printStackTrace();
+			throw e;
+		} catch (SQLException e) {
+			e.printStackTrace();
+			throw new krakedevException("Error al consultar proveedores: " + e.getMessage());
+		} finally {
+			if (CON != null) {
+				try {
+					CON.close();
+				} catch (SQLException e) {
+					e.printStackTrace();
+				}
+			}
+		}
+
+		return pv;
+	}
 	public ArrayList<Proveedor> BuscarProveedores(String subcadena) throws krakedevException {
 		ArrayList<Proveedor> pvL = new ArrayList<Proveedor>();
 		Connection CON = null;

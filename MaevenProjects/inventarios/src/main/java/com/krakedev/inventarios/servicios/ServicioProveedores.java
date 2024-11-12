@@ -11,7 +11,9 @@ import javax.ws.rs.Produces;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 
+import com.krakedev.inventarios.BDD.ProductosBDD;
 import com.krakedev.inventarios.BDD.ProveedoresBDD;
+import com.krakedev.inventarios.entidades.Producto;
 import com.krakedev.inventarios.entidades.Proveedor;
 import com.krakedev.inventarios.exception.krakedevException;
 
@@ -31,6 +33,20 @@ public class ServicioProveedores {
 			return Response.serverError().build();
 		}
 		
+	}
+	@Path("buscarUno/{identifcador}")
+	@GET
+	@Produces(MediaType.APPLICATION_JSON)
+	public Response BuscarUno(@PathParam("identifcador") String identificador) {
+		Proveedor pvL;
+		ProveedoresBDD pvBDD = new ProveedoresBDD();
+		try {
+			pvL = pvBDD.BuscarProveedor(identificador);
+			return Response.ok(pvL).build();
+		} catch (krakedevException e) {
+			e.printStackTrace();
+			return Response.serverError().build();
+		}
 	}
 	
 	@Path("buscar/{subcadena}")
