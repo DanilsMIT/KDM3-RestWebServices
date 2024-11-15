@@ -1,0 +1,22 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <script src="utilis.js"></script>
+        <script src="funciones.js"></script>
+
+    </head>
+    <body>
+        <h4>Ingrese el valor 1</h4>
+        <input type="text" id="valor1"/>
+        <h4>Ingrese el valor 2</h4>
+        <input type="text" id="valor2"/>
+        <input type="button" value="SUMAR" onclick="Operando(Suma)"/>
+        <input type="button" value="RESTAR" onclick="Operando(Resta)"/>
+        <input type="button" value="PRODUCTO" onclick="Operando((value1,value2)=>{
+            let producto=value1*value2;
+            return producto
+        })"/>
+
+
+    </body>
+</html>
