@@ -1,0 +1,13 @@
+LIBRERIAS REACT NATIVE
+
+NAVIGATION:
+from: 'Hello React Navigation'
+
+npm install @react-navigation/native
+npm install @react-navigation/native-stack
+
+ELEMMENTS:
+
+npm install @rneui/themed @rneui/base
+npm install react-native-vector-icons
+
