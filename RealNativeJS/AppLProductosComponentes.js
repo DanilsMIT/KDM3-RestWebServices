@@ -112,7 +112,6 @@ export default function App() {
                 p = productos[a]
                 if (nombre == p.nombre && categoria == p.categoria) {
                     p.precioVenta = precio;
-
                     break;
                 }
             }
